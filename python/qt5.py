@@ -25,7 +25,7 @@ class App(QApplication):
     events = []
     ready = False
     video = None
-    video_frames_per_second = 12
+    video_frames_per_second = 10
     overwrite = True
 
     def isReady(self, reply):

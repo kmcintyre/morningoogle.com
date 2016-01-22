@@ -49,14 +49,12 @@ class Window(QMainWindow):
             ab = not self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical) > self.web_page.mainFrame().scrollBarValue(
                 Qt.Vertical) or (bottom_limit and self.web_page.mainFrame().scrollBarValue(Qt.Vertical) > bottom_limit)
             if ab:
-                log.msg(
-                    'At Bottom:', self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical))
+                log.msg('At Bottom:', self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical))
             return ab
         while not at_bottom():
             log.msg('moving to bottom')
-            QTest.qWait(200)
-            QTest.keyClick(
-                self.web_page.view(), Qt.Key_PageDown, Qt.NoModifier, 50)
+            QTest.qWait(1000)
+            QTest.keyClick(self.web_page.view(), Qt.Key_PageDown, Qt.NoModifier, 1000)
         return defer.succeed(self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical))
 
     '''
@@ -75,9 +73,9 @@ class Window(QMainWindow):
         def hitdown(res):
             QTest.keyClick(self.web_page.view(), Qt.Key_Down, Qt.NoModifier, 50)
             if url == 'https://www.google.com/':
-                QTest.qWait(delay * 3000)
+                QTest.qWait(delay * 2500)
             else:
-                QTest.qWait(delay * 1000)
+                QTest.qWait(delay * 1500)
             QTest.keyClick(
                 self.web_page.view(), Qt.Key_Escape, Qt.NoModifier, 50)
             return defer.SUCCESS
