@@ -24,7 +24,7 @@ if not os.path.isfile(mg_avi):
     video_environment.set_environment(mg_avi)
 else:
     log.msg('video exists:', mg_avi)
-    sys.exit(0)
+    #sys.exit(0)
 
 from lxml import html
 from twisted.internet import reactor, defer
@@ -95,7 +95,7 @@ def compress():
     print 'process:', process
     d = defer.Deferred()
     def processEnded():
-        #os.remove('today_2016-01-21.avi')
+        #os.remove(mg_avi)
         log.msg('compress with audio done!')
         return d.callback(True)
     process.processEnded = lambda ign: processEnded()
@@ -108,8 +108,7 @@ def domain_loop(res, window, loop=0):
     try:
         search_domain = window.domains[loop]
         log.msg('search_domain:', search_domain)
-        d = window.xmlrpc_google_suggest(
-            search_domain[2], messenger.message(None))
+        d = window.xmlrpc_google_suggest(search_domain[2], messenger.message(None))
         d.addCallback(domain_loop, window, loop + 1)
         return d
     except Exception as e:
@@ -138,7 +137,7 @@ def mg(domains, window):
     window.domains = domains
     return window.web_page.page_deferred(gather)
 
-@defer.inlineCallbacks
+#@defer.inlineCallbacks
 def start_mg(window):
     log.msg('start_mg:', window)
     window.show()
@@ -152,10 +151,13 @@ def start_mg(window):
     yield d
     window.close()
     yield compress()
-    yield ogv()
-    data = open(mg_ogv, 'rb')
-    bucket.put_object(Key='ogv/' + mg_ogv, Body=data)
-    print transcoder.toMp4('ogv/' + mg_ogv, mg_date)
+    yield ogv()    
+    data = open(mg_ogv, 'rb')    
+    object_result = bucket.put_object(Key='ogv/' + mg_ogv, Body=data)
+    print 'put object:', object_result
+    result = transcoder.toMp4('ogv/' + mg_ogv, mg_date)
+    print 'transcoder result:', result
+    reactor.stop()
     
 if __name__ == '__main__':
     log.startLogging(sys.stdout)
