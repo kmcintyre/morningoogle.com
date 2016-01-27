@@ -1,3 +1,6 @@
 *.pyc
 node_modules
 audio
+public/preview/*
+public/ogv/*
+public/video/*

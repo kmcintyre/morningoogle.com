@@ -42,18 +42,16 @@ class Window(QMainWindow):
             self.web_page.view(), Qt.LeftButton, Qt.NoModifier, QPoint(x, y))
         return self.xmlrpc_delay(True, delay_secs)
 
-    def xmlrpc_scroll_to_bottom(self, bottom_limit=None):
+    def xmlrpc_scroll_to_bottom(self):
         log.msg('scroll to bottom')
 
         def at_bottom():
-            ab = not self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical) > self.web_page.mainFrame().scrollBarValue(
-                Qt.Vertical) or (bottom_limit and self.web_page.mainFrame().scrollBarValue(Qt.Vertical) > bottom_limit)
+            ab = not self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical) > self.web_page.mainFrame().scrollBarValue(Qt.Vertical)
             if ab:
-                log.msg('At Bottom:', self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical))
+                log.msg('At Bottom:', self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical))            
             return ab
         while not at_bottom():
-            log.msg('moving to bottom')
-            QTest.qWait(1000)
+            log.msg('moving to bottom:', self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical), self.web_page.mainFrame().scrollBarValue(Qt.Vertical))
             QTest.keyClick(self.web_page.view(), Qt.Key_PageDown, Qt.NoModifier, 1000)
         return defer.succeed(self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical))
 
