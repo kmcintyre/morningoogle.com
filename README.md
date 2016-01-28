@@ -15,3 +15,4 @@ Front-end
 
 The front-end is server-side rendered [Jade](http://jade-lang.com) and [Express](http://expressjs.com) published via [s3copy.py](https://gist.github.com/kmcintyre/6998159) to [Amazon S3](http://aws.amazon.com/s3/)
 
+[![Morning Google from 2014-05-20](http://img.youtube.com/vi/BeutJydMRKE/0.jpg)](http://www.youtube.com/watch?v=BeutJydMRKE)
