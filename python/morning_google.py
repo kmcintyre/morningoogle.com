@@ -105,24 +105,17 @@ def gmt_date(res, window):
     log.msg('gmtdate', res)
     gather = {}
     gather['URI'] = 'https://www.google.com/search?q=gmt+time'
-    return window.web_page.page_deferred(gather)
-
-def mg(domains, window):
-    log.msg('mg:', len(domains))
-    gather = {}
-    gather['URI'] = 'http://morningoogle.com'
-    window.domains = domains
-    return window.web_page.page_deferred(gather)
+    d = window.web_page.page_deferred(gather)
+    return d
 
 @defer.inlineCallbacks
 def start_mg(window):
+    window.show()
     log.msg('start_mg:', window)
     wgg = WikipediaGoogleDomains()
-    google = yield wgg.google_domains()
-    window.show()
+    google = yield wgg.google_domains()    
     qt5.app.isReady(True)        
-    d = mg(google, window)
-    d.addCallback(gmt_date, window)
+    d = gmt_date(window)
     d.addCallback(google_news, window)
     d.addCallback(domain_loop, window)
     yield d

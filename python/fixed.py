@@ -1,11 +1,9 @@
-import re
 import time
 import datetime
 
 FRAME_SIZE = 2 ** 20 * 4
 
 import os
-from twisted.python import reflect
 
 tmp_disk = '/tmp/'
 
@@ -25,11 +23,11 @@ def environment():
         env_vars["DISPLAY"] = ":0"
     return env_vars
 
+def yesterday():
+    return str(datetime.datetime.fromtimestamp(time.mktime(time.gmtime())-24*60*60)).split(' ')[0] 
 
 def gmt_string():
-    ds = str(datetime.datetime.fromtimestamp(
-        time.mktime(time.gmtime()))).split(' ')[0]
-    return ds  # .strftime(ds_format)
+    return str(datetime.datetime.fromtimestamp(time.mktime(time.gmtime()))).split(' ')[0]
 
 ds_format = '%Y_%m_%d'
 dt_format = ds_format + '/%H_%M_%S'

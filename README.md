@@ -8,10 +8,10 @@ This project is non-commercial used as a means to review Amazon Elastic Transcod
 Back-end
 -------------
 
-[python twisted](https://twistedmatrix.com), [Qt5](http://doc.qt.io/qt-5), [OpenCV](http://opencv.org), [Boto3](http://github.com/boto/boto3), [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder), [AWS Lambda](https://aws.amazon.com/elastictranscoder), and [ImageMagick](http://www.imagemagick.org)
+[python twisted](https://twistedmatrix.com), [Qt5](http://doc.qt.io/qt-5), [OpenCV](http://opencv.org), [Boto3](http://github.com/boto/boto3), [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder), [AWS Lambda](https://aws.amazon.com/lambda), and [ImageMagick](http://www.imagemagick.org)
 
 Front-end
 -------------
 
-The front-end is server-side rendered [Jade](http://jade-lang.com) and [Jade](http://jade-lang.com) published via [Amazon S3](http://aws.amazon.com/s3/)
+The front-end is server-side rendered [Jade](http://jade-lang.com) and [Express](http://expressjs.com) published via [s3copy.py](https://gist.github.com/kmcintyre/6998159) to [Amazon S3](http://aws.amazon.com/s3/)
 
