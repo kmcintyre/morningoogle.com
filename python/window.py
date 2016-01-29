@@ -14,7 +14,7 @@ from twisted.python import log
 import fixed
 
 from page import SimpleQWebPage
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 
 class Window(QMainWindow):
     
@@ -24,6 +24,14 @@ class Window(QMainWindow):
         log.msg('scewpt window init')
         self.resize(QSize(1024, 768))
         self.setCentralWidget(self.web_page.view())
+
+    def xmlrpc_delay(self, ans=True, delay_sec=1, wait=0):
+        if delay_sec != self.web_page.natural_delay_response:
+            pass
+        d = defer.Deferred()
+        d.addCallback(lambda ign: defer.succeed(ans))
+        reactor.callLater(delay_sec, d.callback, ans)
+        return d
 
     def xmlrpc_goto_url(self, url, skip=None):
         print 'goto:', url

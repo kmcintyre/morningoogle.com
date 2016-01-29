@@ -99,13 +99,15 @@ def google_news(res, window):
     gather = {}
     gather['URI'] = 'https://news.google.com'
     yield window.web_page.page_deferred(gather)
-    window.xmlrpc_scroll_to_bottom()
+    d = window.xmlrpc_scroll_to_bottom()
+    d.addCallback(window.xmlrpc_delay, 1)
+    yield d 
 
-def gmt_date(res, window):
-    log.msg('gmtdate', res)
+def gmt_date(window):
     gather = {}
     gather['URI'] = 'https://www.google.com/search?q=gmt+time'
     d = window.web_page.page_deferred(gather)
+    d.addCallback(window.xmlrpc_delay, 1)
     return d
 
 @defer.inlineCallbacks
@@ -113,7 +115,7 @@ def start_mg(window):
     window.show()
     log.msg('start_mg:', window)
     wgg = WikipediaGoogleDomains()
-    google = yield wgg.google_domains()    
+    window.domains = yield wgg.google_domains()    
     qt5.app.isReady(True)        
     d = gmt_date(window)
     d.addCallback(google_news, window)
@@ -153,7 +155,7 @@ def start_mg(window):
     subprocess.check_call(['cp', mg_ogv, '../public/ogv/'])
     s3.Bucket('morningoogle.com').put_object(Key='ogv/' + mg_ogv, Body=open(mg_ogv, 'rb'), ACL='public-read', ContentType='video/ogg')
     os.remove(mg_ogv)
-    
+    reactor.stop()
 
 if __name__ == '__main__':
     log.startLogging(sys.stdout)
