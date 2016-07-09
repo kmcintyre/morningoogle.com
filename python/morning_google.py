@@ -42,9 +42,8 @@ class Messenger():
             return "thank you"
         else:
             return "morning"
-
+        
 messenger = Messenger()
-
 class WikipediaGoogleDomains():
 
     def callbackExtractGoogle(self, h):
@@ -89,14 +88,12 @@ def google_news(res, window):
 @defer.inlineCallbacks
 def gmt_date(window):
     d = window.goto_url('https://www.google.com/search?q=gmt+time')
-    d.addCallback(lambda res: task.deferLater(reactor, 2, defer.succeed, res))    
+    d.addCallback(lambda res: task.deferLater(reactor, 3, defer.succeed, res))    
     yield d
 
 window = Window()
-
 window.page().profile().setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
 window.page().settings().setAttribute(QWebEngineSettings.LocalStorageEnabled, False)
-
 
 @defer.inlineCallbacks
 def start_mg():
