@@ -13,7 +13,7 @@ def launch_avi_ogv(avi, ogv):
     return subprocess.check_call(args)
 
 def launch_avi_mp4(avi, mp4):
-    args = ['avconv', '-i', avi, '-c:v', 'libx264', mp4]
+    args = ['avconv', '-i', avi, '-c:v', 'libx264', '-strict', '-2', mp4]
     log.msg('launch_avi_mp4:', args)
     return subprocess.check_call(args)
 

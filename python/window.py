@@ -1,90 +1,74 @@
 import qt5
 print 'window:', qt5.qt_version
 
-from PyQt5.QtWidgets import QMainWindow
-from PyQt5 import QtWebEngineWidgets
-from twisted.web.xmlrpc import XMLRPC
-from PyQt5.QtCore import QUrl, QSize, Qt, QPoint
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtGui import QImage, QPainter
-from PyQt5.QtTest import QTest
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtCore import QUrl
 
-from twisted.python import log
+from twisted.internet import defer, reactor, task
 
-import fixed
-
-from page import SimpleQWebPage
-from twisted.internet import defer, reactor
-
-class Window(QMainWindow):
+class Window(QWebEngineView):
     
-    def __init__(self, parent=None):
-        QMainWindow.__init__(self, parent)
-        self.web_page = SimpleQWebPage()
-        log.msg('scewpt window init')
-        self.resize(QSize(1024, 768))
-        self.setCentralWidget(self.web_page.view())
+    js_common_fmt="""
+        //while (document.body.scrollHeight > document.body.scrollTop) {
+        //}
+        """        
+    js_fake_key_fmt="""
+        var el = document.activeElement;
+        function keyin(keyCode, noup) {
+            var event = document.createEvent('KeyboardEvent'); // create a key event
+            // define the event
+            alert(keyCode + ' ' + noup);            
+            event.initKeyEvent(noup?"keydown":"keypress",       // typeArg,                                                           
+                   true,             // canBubbleArg,                                                        
+                   true,             // cancelableArg,                                                       
+                   null,             // viewArg,  Specifies UIEvent.view. This value may be null.     
+                   false,            // ctrlKeyArg,                                                               
+                   false,            // altKeyArg,                                                        
+                   false,            // shiftKeyArg,                                                      
+                   false,            // metaKeyArg,                                                       
+                    9,               // keyCodeArg,                                                      
+                    keyCode);              // charCodeArg);                
+            el.dispatchEvent(event);
+        }        
+        var term = '%s';
+        for (var x = 0; x < term.length; x++) {            
+            keyin(term.charCodeAt(x), false);            
+        }
+        //#keyin(40, true);
+    """ 
+    
+    def scroll_to_bottom(self, tick):
+        self.page().runJavaScript(self.js_common_fmt)        
+    
+    def __init__(self):
+        print '    BANG'
+        super(QWebEngineView, self).__init__()            
+        self.deferred_cbs = []
+        self.setFixedWidth(1024)
+        self.setFixedHeight(768)
+        self.page().loadFinished.connect(self.finished)
 
-    def xmlrpc_delay(self, ans=True, delay_sec=1, wait=0):
-        if delay_sec != self.web_page.natural_delay_response:
-            pass
+    def finished(self, ok):
+        print 'finished-', len(self.deferred_cbs), self.page().url().toString()
+        for deferred in self.deferred_cbs:
+            if not deferred.called:
+                if not ok:
+                    print 'not okay return:', ok
+                deferred.callback(ok)
+                return
+        else:
+            print 'no callback'     
+        
+    def goto_url(self, url):
+        print 'goto url:', url, len(self.deferred_cbs)
+        qurl = QUrl(url)        
         d = defer.Deferred()
-        d.addCallback(lambda ign: defer.succeed(ans))
-        reactor.callLater(delay_sec, d.callback, ans)
+        self.deferred_cbs.append(d)         
+        self.page().load(qurl)
         return d
-
-    def xmlrpc_goto_url(self, url, skip=None):
-        print 'goto:', url
-        url = fixed.simpleurl(url)
-        #log.msg('goto:', url, 'from:', self.web_page.view().url().toString())
-        gather = {'URI': url}
-        if skip:
-            log.msg('set skip:', skip)
-            gather.update({'skip': skip})
-        d = self.web_page.page_deferred(gather)
-        return d
-
-    def xmlrpc_click(self, x, y, delay_secs=1):
-        # log.msg('click:', x, 'x', y
-        QTest.mouseClick(
-            self.web_page.view(), Qt.LeftButton, Qt.NoModifier, QPoint(x, y))
-        return self.xmlrpc_delay(True, delay_secs)
-
-    def xmlrpc_scroll_to_bottom(self):
-        log.msg('scroll to bottom')
-
-        def at_bottom():
-            ab = not self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical) > self.web_page.mainFrame().scrollBarValue(Qt.Vertical)
-            if ab:
-                log.msg('At Bottom:', self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical))            
-            return ab
-        while not at_bottom():
-            log.msg('moving to bottom:', self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical), self.web_page.mainFrame().scrollBarValue(Qt.Vertical))
-            QTest.keyClick(self.web_page.view(), Qt.Key_PageDown, Qt.NoModifier, 1000)
-        return defer.succeed(self.web_page.mainFrame().scrollBarMaximum(Qt.Vertical))
-
-    '''
-    must investigate
-    '''
-
-    def xmlrpc_flash_set(self, setting=True):
-        self.web_page.settings().setAttribute(
-            QWebSettings.PluginsEnabled, setting)
-        return self.web_page.page_deferred(gather={'URI': 'http://www.adobe.com/software/flash/about/'})
-
-    def xmlrpc_google_suggest(self, url='https://www.google.com/', q='', delay=2):
-        gather = {}
-        gather['URI'] = '{0}?q={1}'.format(url, q)
-
-        def hitdown(res):
-            QTest.keyClick(self.web_page.view(), Qt.Key_Down, Qt.NoModifier, 50)
-            if url == 'https://www.google.com/':
-                QTest.qWait(delay * 2500)
-            else:
-                QTest.qWait(delay * 1500)
-            QTest.keyClick(
-                self.web_page.view(), Qt.Key_Escape, Qt.NoModifier, 50)
-            return defer.SUCCESS
-        d = self.web_page.page_deferred(gather)
-        d.addCallback(hitdown)
+    
+    def google_suggest(self, url='http://www.google.com/', q='', delay=2):        
+        d = self.goto_url(url)
+        #d.addCallback(lambda ign: self.page().runJavaScript(self.js_fake_key_fmt % q))
+        d.addCallback(lambda res: task.deferLater(reactor, 1, defer.succeed, res))        
         return d

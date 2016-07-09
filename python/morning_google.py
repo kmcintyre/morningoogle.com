@@ -1,7 +1,8 @@
 import qt5
 print 'morning:', qt5.qt_version
 
-import video_environment
+
+from PyQt5.QtWebEngineWidgets import QWebEngineProfile, QWebEngineSettings
 import fixed
 import video
 
@@ -14,7 +15,8 @@ from twisted.python import log
 import boto3
 
 mg_date = fixed.gmt_string()
-mg_avi = mg_date + '.avi'
+mg_snd = 'today_sound.avi'
+mg_mp3 = 'today.mp3'
 mg_ogv = mg_date + '.ogv'
 mg_mp4 = mg_date + '.mp4'
 mg_gif = mg_date + '.gif'
@@ -23,16 +25,9 @@ s3 = boto3.resource('s3')
 bucket = s3.Bucket('morningoogle.com')
 s3_client=boto3.client('s3')
 
-log.msg('morning!:', mg_avi, mg_ogv)
-if not os.path.isfile(mg_avi):
-    log.msg('set environment')
-    video_environment.set_environment(mg_avi)
-else:
-    log.msg('video exists:', mg_avi)
-    #sys.exit(0)
 
 from lxml import html
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, task
 from twisted.web.client import getPage
 
 from window import Window
@@ -52,27 +47,23 @@ messenger = Messenger()
 
 class WikipediaGoogleDomains():
 
-    '''
-    varies
-    '''
-    # /html/body/div[3]/div[2]/div[4]/table[1]
-    # /html/body/div[3]/div[2]/div[4]/table[1]
-    # /html/body/div[3]/div[3]/div[4]/table[1]
-
     def callbackExtractGoogle(self, h):
         google = []
         doc = html.document_fromstring(h)
-        n = doc.xpath('/html/body/div[3]/div[3]/div[4]/table[1]')[0]
+        n = doc.cssselect('a[title="Ascension Island"]')[0]
+        
         google.append(('Worldwide', '.COM', 'https://www.google.com/'))
-        for tr in n:
+        for tr in n.getparent().getparent().getparent()[2:]:
             try:
                 country_name = tr[0].find("a").text
                 iso = tr[1][0][0].text
                 domain = tr[2][0][0].get('href')
-                log.msg('domain:', domain)
+                #log.msg('domain:', domain)
                 google.append((country_name, iso, domain))
+                
             except Exception as e:
                 log.msg('google domain exception:', e)
+        print 'search domains length:', len(google)
         return google
 
     def google_domains(self):        
@@ -80,62 +71,57 @@ class WikipediaGoogleDomains():
         d.addCallback(self.callbackExtractGoogle)
         return d
 
-def domain_loop(res, window, loop=0):
-    window.web_page.natural_delay_response = .5
-    log.msg('domain loop res:', res, 'loop:', loop)
-    try:
-        search_domain = window.domains[loop]
+@defer.inlineCallbacks
+def domain_loop(window):
+    for search_domain in window.domains:
         log.msg('search_domain:', search_domain)
-        d = window.xmlrpc_google_suggest(search_domain[2], messenger.message(None))
-        d.addCallback(domain_loop, window, loop + 1)
-        return d
-    except Exception as e:
-        log.msg('exception done?:', e)
-        return reactor.stop()
+        d = window.google_suggest(search_domain[2], messenger.message(None))
+        yield d
 
 @defer.inlineCallbacks
 def google_news(res, window):
-    log.msg('get_google_news', res)
-    gather = {}
-    gather['URI'] = 'https://news.google.com'
-    yield window.web_page.page_deferred(gather)
-    d = window.xmlrpc_scroll_to_bottom()
-    d.addCallback(window.xmlrpc_delay, 1)
+    log.msg('get_google_news', res) 
+    d = window.goto_url('https://news.google.com')
+    d.addCallback(lambda res: task.deferLater(reactor, 2, defer.succeed, res))
+    d.addCallback(lambda res: window.scroll_to_bottom(100))    
     yield d 
 
+@defer.inlineCallbacks
 def gmt_date(window):
-    gather = {}
-    gather['URI'] = 'https://www.google.com/search?q=gmt+time'
-    d = window.web_page.page_deferred(gather)
-    d.addCallback(window.xmlrpc_delay, 1)
-    return d
+    d = window.goto_url('https://www.google.com/search?q=gmt+time')
+    d.addCallback(lambda res: task.deferLater(reactor, 2, defer.succeed, res))    
+    yield d
+
+window = Window()
+
+window.page().profile().setPersistentCookiesPolicy(QWebEngineProfile.NoPersistentCookies)
+window.page().settings().setAttribute(QWebEngineSettings.LocalStorageEnabled, False)
+
 
 @defer.inlineCallbacks
-def start_mg(window):
+def start_mg():
     window.show()
     log.msg('start_mg:', window)
     wgg = WikipediaGoogleDomains()
     window.domains = yield wgg.google_domains()    
-    qt5.app.isReady(True)        
-    d = gmt_date(window)
+    qt5.app.toVideo()
+    mp3 = list(bucket.objects.filter(Prefix='audio/' + mg_date[5:]))[0]
+    boto3.client('s3').download_file(bucket.name, mp3.key, mg_mp3)
+    print 'got mp3'            
+    d = gmt_date(window)    
     d.addCallback(google_news, window)
-    d.addCallback(domain_loop, window)
+    d.addCallback(lambda ign: domain_loop(window) )
+    #yield task.deferLater(reactor, 1, defer.succeed, True)
     yield d
-    window.close()
+    qt5.app.stopVideo()
+    window.close()    
     print 'compress' 
-    if not os.path.isfile('today.mp3'):
-        print 'get mp3'
-        mp3 = list(bucket.objects.filter(Prefix='audio/' + mg_date[5:]))[0]
-        boto3.client('s3').download_file(bucket.name, mp3.key, 'today.mp3')
-    avi_result = video.launch_avi_mp3(mg_avi, 'today.mp3', 'today_sound.avi')
+    avi_result = video.launch_avi_mp3(qt5.app.location, mg_mp3, mg_snd)
     print 'avi_result:', avi_result
-    os.remove(mg_avi)
-    os.remove('today.mp3')
-    ogv_result = video.launch_avi_ogv('today_sound.avi', mg_ogv)
+    ogv_result = video.launch_avi_ogv(mg_snd, mg_ogv)
     print 'ogv_result:', ogv_result    
-    mp4_result = video.launch_avi_mp4('today_sound.avi', mg_mp4)
-    print 'mp4_result:', mp4_result
-    os.remove('today_sound.avi')
+    mp4_result = video.launch_avi_mp4(mg_snd, mg_mp4)
+    print 'mp4_result:', mp4_result    
     preview_result = video.launch_mp4_preview(mg_mp4)
     print 'preview_result:', preview_result
     gif_result = video.launch_preview_gif(mg_gif)
@@ -143,6 +129,9 @@ def start_mg(window):
     filelist = [ f for f in os.listdir('.') if f.endswith('.png') ]
     for f in filelist:
         os.remove(f) 
+            
+    os.remove(mg_snd)
+    os.remove(mg_mp3)
         
     subprocess.check_call(['cp', mg_gif, '../public/preview/'])
     s3.Bucket('morningoogle.com').put_object(Key='preview/' + mg_gif, Body=open(mg_gif, 'rb'), ACL='public-read', ContentType='image/gif')
@@ -159,7 +148,7 @@ def start_mg(window):
 
 if __name__ == '__main__':
     log.startLogging(sys.stdout)
-    window = Window()
+    
     window.show()
-    reactor.callLater(1, start_mg, window)
+    reactor.callWhenRunning(start_mg)
     reactor.run()

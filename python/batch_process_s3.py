@@ -6,6 +6,7 @@ print bucket
 import video
 import os
 
+'''
 for obj in bucket.objects.filter(Prefix='ogv'):
     if obj.key.endswith('.ogv'):
         video_file = obj.key.split('/')[-1]
@@ -40,6 +41,7 @@ for obj in bucket.objects.filter(Prefix='ogv'):
             
             os.remove(video_gif)
 '''
+
 for mp3 in os.listdir('../audio'):
     print mp3
     objs = list(bucket.objects.filter(Prefix='audio/' + mp3))
@@ -53,7 +55,7 @@ for mp3 in os.listdir('../audio'):
         print 'missing:', mp3
         data = open('../audio/' + mp3, 'rb')        
         bucket.put_object(ACL='public-read', Key='audio/' + mp3, Body=data)
-'''     
+
         
 '''
 import transcoder
