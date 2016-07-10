@@ -4,7 +4,9 @@ body, html {
   text-align:center;
   background-color:#f6f6f6;
 }
-
+md-content {
+	background-color:#f6f6f6;
+}
 a {
   color: #00B7FF;
 }

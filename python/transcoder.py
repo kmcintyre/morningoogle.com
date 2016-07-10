@@ -1,3 +1,4 @@
+# how amazon does it
 def toMp4(incoming, outgoing):    
     import boto3
     client = boto3.client('elastictranscoder')    
