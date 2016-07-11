@@ -8,7 +8,11 @@ This project is non-commercial used as a means to review Amazon Elastic Transcod
 Back-end
 -------------
 
-[python twisted](https://twistedmatrix.com), [Qt5](http://doc.qt.io/qt-5), [OpenCV](http://opencv.org), [Boto3](http://github.com/boto/boto3), [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder), [AWS Lambda](https://aws.amazon.com/lambda), and [ImageMagick](http://www.imagemagick.org)
+[python twisted](https://twistedmatrix.com), [Qt5](http://doc.qt.io/qt-5), [OpenCV](http://opencv.org), [Boto3](http://github.com/boto/boto3) and [ImageMagick](http://www.imagemagick.org)
+
+My review of elastic transcoder and Lambda is that Lambda needs GPU.  
+
+[Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder), [AWS Lambda](https://aws.amazon.com/lambda),
 
 Front-end
 -------------
