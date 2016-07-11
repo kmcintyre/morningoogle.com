@@ -49,7 +49,7 @@ for mp3 in os.listdir('../audio'):
         print 'exists:', mp3
         print objs[0].key
         
-        exit(0)
+        #exit(0)
         #get().download_file('test.mp3')
     else:
         print 'missing:', mp3

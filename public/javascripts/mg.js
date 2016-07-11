@@ -4,6 +4,11 @@ function setDimensions() {
 	document.querySelector('video').setAttribute('width', width);
 	document.querySelector('video').setAttribute('height', height)
 }
+
+document.querySelector('video').addEventListener('error', function(event) {
+	console.log('			error!');
+}, true);
+
 function setVideoSource(video_date) {
 	console.log('set video _date', video_date);
 	document.querySelector('video').setAttribute('poster', '/preview/' + video_date + '.gif')
