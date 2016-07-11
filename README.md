@@ -10,9 +10,7 @@ Back-end
 
 [python twisted](https://twistedmatrix.com), [Qt5](http://doc.qt.io/qt-5), [OpenCV](http://opencv.org), [Boto3](http://github.com/boto/boto3) and [ImageMagick](http://www.imagemagick.org)
 
-My review of elastic transcoder and Lambda is that Lambda needs GPU.  
-
-[Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder), [AWS Lambda](https://aws.amazon.com/lambda),
+My review of [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder) and [AWS Lambda](https://aws.amazon.com/lambda) is that Lambda needs GPU.  
 
 Front-end
 -------------
