@@ -1,15 +1,70 @@
+<style> 
+.md-datepicker-input-mask {
+    overflow:hidden;
+}
+</style>
+
 <!-- Angular Material requires Angular.js Libraries -->
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.min.js"></script>
-<script src="http://ngmaterial.assets.s3.amazonaws.com/svg-assets-cache.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.11/angular.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.11/angular-animate.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.11/angular-aria.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.11/angular-messages.min.js"></script>
+<script src="/javascripts/svg-assets-cache.js"></script>
 
 <!-- Angular Material Library -->
-<script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.4/angular-material.min.js"></script>
 
 <!-- Your application bootstrap  -->
 <script type="text/javascript">    
-  angular.module('app',['ngMaterial', 'ngMessages', 'material.svgAssetsCache']).controller('appCtrl', function($scope, $timeout) {
-  });        
+function setDimensions() {
+	var width = Math.min(document.documentElement.clientWidth-10,1024)
+	var height = width * .75; 
+	document.querySelector('video').setAttribute('width', width);
+	document.querySelector('video').setAttribute('height', height)
+}
+
+function setVideoSource(video_date) {
+	console.log('set video_date', video_date);
+	document.querySelector('video').setAttribute('poster', 'http://morningoogle.com/preview/' + video_date + '.gif')
+	document.querySelector('source[type="video/mp4"]').setAttribute('src', 'http://morningoogle.com/video/' + video_date + '.mp4');
+	document.querySelector('source[type="video/ogg"]').setAttribute('src', 'http://morningoogle.com/ogv/' + video_date + '.ogv');
+	document.querySelector('video').load()
+}
+
+function dateFormat(d) {
+	return d.getUTCFullYear() + '-' + ("0" + (d.getUTCMonth() + 1)).slice(-2) + '-' + ("0" + d.getUTCDate()).slice(-2);
+}
+
+window.onhashchange = function () {
+	console.log('hash changed')
+	setVideoSource(document.location.hash.substring(1))
+}
+var resizeTimer;
+window.onresize = function(event) {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function() {
+	  setDimensions()            
+  }, 100);
+}
+
+angular.module('app',['ngMaterial', 'ngMessages', 'material.svgAssetsCache']).controller('appCtrl', function($scope, $timeout) {
+	$scope.updateDate = function() {
+		console.log('updateDate:', $scope.playDate)
+		document.location.hash = dateFormat($scope.playDate)
+	}
+	setDimensions();
+	if (!document.location.hash) {
+		console.log('set hash to new date')
+		$scope.playDate = new Date();
+	} else {
+		var h = document.location.hash.substring(1).split('-');			
+		var d = new Date();
+		d.setYear(parseInt(h[0]));
+		d.setMonth(parseInt(h[1])-1);
+		d.setDate(parseInt(h[2]));
+		console.log('hash split:', parseInt(h[0]), parseInt(h[1]), parseInt(h[2]), 'date:', d)
+		$scope.playDate = d;				
+	}	
+	$scope.updateDate();
+});        
 </script>
