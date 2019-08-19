@@ -1,0 +1,71 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Create a Docker CI/CD pipeline with CodePipeline, CodeBuild and ECR
+Parameters:
+  ProjectName:
+    Default: morningoogle
+    Type: String
+Resources:
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !GetAtt PipelineRole.Arn
+      Name: !Sub ${ProjectName}_pipeline
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: GithubRepo
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: 1
+              Configuration:
+                Owner: kmcintyre
+                Repo: morningoogle.com
+                Branch: master
+                OAuthToken: 85e9d4ef3abb99617f3fa2402c3930917c64bab1
+              OutputArtifacts:
+                - Name: SourceZip
+              RunOrder: 1
+        - Name: Build
+          Actions:
+          - Name: Deploy
+            ActionTypeId:
+              Category: Approval
+              Owner: AWS
+              Version: '1'
+              Provider: Manual
+            RunOrder: 2
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactStoreBucket
+  ArtifactStoreBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Suspended
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [codepipeline.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CodePipelineAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 's3:*'
+                - 'cloudformation:*'
+                - 'iam:PassRole'
+                - 'sns:Publish'
+                - 'codebuild:*'
+                Effect: Allow
+                Resource: '*'
