@@ -9,6 +9,7 @@ phases:
       - echo install
   pre_build:
     commands:
+      - echo pre_build
       - npm install
   build:
     commands:
@@ -16,8 +17,8 @@ phases:
       - npm start
   post_build:
     commands:
+      - echo post_build
       - wget http://localhost:3000 -O index.html
 artifacts:
   files:
-    - app.js
     - index.html
