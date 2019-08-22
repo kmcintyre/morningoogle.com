@@ -18,5 +18,5 @@ phases:
   post_build:
     commands:
       - echo post_build
-      - curl http://localhost:3000 -o public/index.html
-      - aws s3 cp --acl public-read public/index.html s3://morningoogle.com/ 
+      - wget http://localhost:3000 -O public/index.html
+      - aws s3 cp --acl public-read public/index.html s3://morningoogle.com/
