@@ -18,8 +18,7 @@ phases:
   post_build:
     commands:
       - echo post_build
-      - wget http://localhost:3000 -O index.html
-      - mv index.html public/index.html
+      - curl http://localhost:3000 -o public/index.html
       - cat public/index.html
       - aws s3 cp public/index.html s3://morningoogle.com/
 artifacts:
