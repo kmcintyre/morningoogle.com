@@ -1,24 +1,24 @@
-<style> 
+<style>
 .md-datepicker-input-mask {
     overflow:hidden;
 }
 </style>
 
 <!-- Angular Material requires Angular.js Libraries -->
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.11/angular.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.11/angular-animate.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.11/angular-aria.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.11/angular-messages.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.7.8/angular.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.7.8/angular-animate.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.7.8/angular-aria.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.7.8/angular-messages.min.js"></script>
 <script src="/javascripts/svg-assets-cache.js"></script>
 
 <!-- Angular Material Library -->
-<script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.4/angular-material.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.20/angular-material.min.js"></script>
 
 <!-- Your application bootstrap  -->
-<script type="text/javascript">    
+<script type="text/javascript">
 function setDimensions() {
 	var width = Math.min(document.documentElement.clientWidth-10,1024)
-	var height = width * .75; 
+	var height = width * .75;
 	document.querySelector('video').setAttribute('width', width);
 	document.querySelector('video').setAttribute('height', height)
 }
@@ -43,7 +43,7 @@ var resizeTimer;
 window.onresize = function(event) {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(function() {
-	  setDimensions()            
+	  setDimensions()
   }, 100);
 }
 
@@ -57,14 +57,14 @@ angular.module('app',['ngMaterial', 'ngMessages', 'material.svgAssetsCache']).co
 		console.log('set hash to new date')
 		$scope.playDate = new Date();
 	} else {
-		var h = document.location.hash.substring(1).split('-');			
+		var h = document.location.hash.substring(1).split('-');
 		var d = new Date();
 		d.setYear(parseInt(h[0]));
 		d.setMonth(parseInt(h[1])-1);
 		d.setDate(parseInt(h[2]));
 		console.log('hash split:', parseInt(h[0]), parseInt(h[1]), parseInt(h[2]), 'date:', d)
-		$scope.playDate = d;				
-	}	
+		$scope.playDate = d;
+	}
 	$scope.updateDate();
-});        
+});
 </script>

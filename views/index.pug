@@ -3,16 +3,16 @@ extends layout
 block content
 
   img(src="images/morningoogle.png" style="vertical-align:middle;padding-right:30px;padding-bottom:5px")
-  span(class="explain") Daily mash-up using #[a(href="http://doc.qt.io/qt-5/qt5-intro.html") Qt5] and #[a(href="http://opencv.org/") OpenCV]  
+  span(class="explain") Daily mash-up AWS and Puppeteer  
   md-datepicker(ng-model="playDate" md-placeholder="Enter date" ng-change="updateDate()")
-  
+
   div(class="container")
     video(controls)
       source(type="video/mp4")
       source(type="video/ogg")
       |Your browser does not support the video tag.
     div(class="overlay")
-  footer 
+  footer
     p Source code available at #[a(href="https://github.com/kmcintyre/morningoogle.com") Github]
-    
-  include material.html 
+
+  include material.html
