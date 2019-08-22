@@ -19,9 +19,4 @@ phases:
     commands:
       - echo post_build
       - curl http://localhost:3000 -o public/index.html
-      - cat public/index.html
-      - aws s3 cp public/index.html s3://morningoogle.com/
-artifacts:
-  files:
-    - '**/*'
-  base-directory: public
+      - aws s3 cp --acl public-read public/index.html s3://morningoogle.com/ 
