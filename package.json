@@ -1,5 +1,10 @@
 {
   "name": "morningoogle.com",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kmcintyre/morningoogle.git"
+  },
   "scripts": {
     "start": "node app.js"
   },
