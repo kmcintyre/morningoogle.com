@@ -18,8 +18,9 @@ phases:
   post_build:
     commands:
       - echo post_build
-      - wget http://localhost:3000 -O index.html
-      - cat index.html
+      - wget http://localhost:3000 -O public/index.html
+      - cat public/index.html
 artifacts:
   files:
-    - index.html
+    - '**/*'
+  base-directory: public
