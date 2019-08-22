@@ -7,14 +7,17 @@ phases:
       nodejs: 10
     commands:
       - echo install
+      - ls
   pre_build:
     commands:
       - echo pre_build
       - npm install
+      - ls
   build:
     commands:
       - echo build
-      - npm start
+      - npm start &
+      - echo started
   post_build:
     commands:
       - echo post_build
