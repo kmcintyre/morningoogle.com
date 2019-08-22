@@ -1,6 +1,6 @@
 *.pyc
 node_modules
-audio
+aws/env.sh
 public/preview/*
 public/ogv/*
 public/video/*
