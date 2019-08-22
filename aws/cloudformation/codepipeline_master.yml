@@ -1,20 +1,26 @@
 ---
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Create a Docker CI/CD pipeline with CodePipeline, CodeBuild and ECR
+Description: Create a CI/CD pipeline with CodePipeline and Github
 Parameters:
   ProjectName:
     Default: morningoogle
     Type: String
+  GITSECRET:
+    Type: String
+    NoEcho: true
+  GITOAUTH:
+    Type: String
+    NoEcho: true
 Resources:
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      RoleArn: !GetAtt PipelineRole.Arn
+      RoleArn: !ImportValue PipelineRoleArn
       Name: !Sub ${ProjectName}_pipeline
       Stages:
         - Name: Source
           Actions:
-            - Name: GithubRepo
+            - Name: SourceAction
               ActionTypeId:
                 Category: Source
                 Owner: ThirdParty
@@ -24,18 +30,23 @@ Resources:
                 Owner: kmcintyre
                 Repo: morningoogle.com
                 Branch: master
-                OAuthToken: 85e9d4ef3abb99617f3fa2402c3930917c64bab1
+                OAuthToken: !Ref GITOAUTH
+                PollForSourceChanges: false
               OutputArtifacts:
                 - Name: SourceZip
               RunOrder: 1
         - Name: Build
           Actions:
-          - Name: Deploy
+          - Name: BuildAction
+            InputArtifacts:
+              - Name: SourceZip
             ActionTypeId:
-              Category: Approval
+              Category: Build
               Owner: AWS
-              Version: '1'
-              Provider: Manual
+              Version: 1
+              Provider: CodeBuild
+            Configuration:
+              ProjectName: !Ref ProjectName
             RunOrder: 2
       ArtifactStore:
         Type: S3
@@ -45,27 +56,17 @@ Resources:
     Properties:
       VersioningConfiguration:
         Status: Suspended
-  PipelineRole:
-    Type: AWS::IAM::Role
+  Webhook:
+    Type: AWS::CodePipeline::Webhook
     Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-        - Action: ['sts:AssumeRole']
-          Effect: Allow
-          Principal:
-            Service: [codepipeline.amazonaws.com]
-        Version: '2012-10-17'
-      Path: /
-      Policies:
-        - PolicyName: CodePipelineAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Action:
-                - 's3:*'
-                - 'cloudformation:*'
-                - 'iam:PassRole'
-                - 'sns:Publish'
-                - 'codebuild:*'
-                Effect: Allow
-                Resource: '*'
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: !Ref GITSECRET
+      Filters:
+        -
+          JsonPath: "$.ref"
+          MatchEquals: refs/heads/master
+      TargetPipeline: !Ref CodePipeline
+      TargetAction: SourceAction
+      TargetPipelineVersion: !GetAtt CodePipeline.Version
+      RegisterWithThirdParty: true
