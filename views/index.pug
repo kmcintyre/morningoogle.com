@@ -2,10 +2,10 @@ extends layout
 
 block content
 
-  img(src="images/morningoogle.png" style="vertical-align:middle;padding-right:30px;padding-bottom:5px")
-  div(class="explain")
+  div(style="padding-top:5px;display:flex;flex-direction:row")
+    img(src="images/morningoogle.png" style="vertical-align:middle;padding-right:30px;padding-bottom:5px")
     p Mash-up using AWS CodePipeline/CodeBuild & Chrome Puppeteer
-  md-datepicker(ng-model="playDate" md-placeholder="Enter date" ng-change="updateDate()")
+    md-datepicker(ng-model="playDate" md-placeholder="Enter date" ng-change="updateDate()")
 
   div(class="container")
     video(controls)
