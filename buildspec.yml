@@ -15,7 +15,6 @@ phases:
     commands:
       - echo build
       - npm start &
-      - sleep 1
   post_build:
     commands:
       - echo post_build
