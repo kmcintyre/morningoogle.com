@@ -25,6 +25,7 @@ a {
     z-index:1;
 }
 .explain {
+  display: inline-block;
 	line-height:40px;
   width: 200px
 }
