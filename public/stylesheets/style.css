@@ -1,11 +1,14 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
+
 body, html {
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  padding:5px;
-  text-align:center;
-  background-color:#f6f6f6;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  padding: 5px;
+  text-align: center;
+  background-color: #f6f6f6;
 }
 md-content {
-	background-color:#f6f6f6;
+	background-color: #f6f6f6;
 }
 a {
   color: #00B7FF;
