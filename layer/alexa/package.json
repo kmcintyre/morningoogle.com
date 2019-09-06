@@ -1,0 +1,9 @@
+{
+  "name": "morningoogle-alexa",
+  "version": "1.0.0",
+  "dependencies": {
+    "request": "latest",
+    "unzipper": "latest",
+    "csv2": "latest"
+  }
+}

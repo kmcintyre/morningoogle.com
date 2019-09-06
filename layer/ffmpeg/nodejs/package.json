@@ -1,0 +1,7 @@
+{
+  "name": "morningoogle-ffmpeg",
+  "version": "1.0.0",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "latest"
+  }
+}

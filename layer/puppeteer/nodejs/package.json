@@ -1,0 +1,8 @@
+{
+  "name": "morningoogle-puppeteer",
+  "version": "1.0.0",
+  "dependencies": {
+    "chrome-aws-lambda": "latest",
+    "puppeteer-core": "latest"
+  }
+}
