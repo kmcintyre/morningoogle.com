@@ -1,0 +1,33 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  Layer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs8.10
+      Content:
+        S3Bucket: morningoogle.com
+        S3Key: layer/ffmpeg.zip
+      LayerName: ffmpeg
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: ffmpeg
+      Handler: index.handler
+      Runtime: nodejs8.10
+      MemorySize: 512
+      Timeout: 60
+      Role: !ImportValue LambdaExecutionRoleArn
+      Layers:
+        - !Ref Layer
+      Code:
+        ZipFile: |
+          exports.handler = function(event, context, callback) {
+              callback(null, event);
+          };
+Outputs:
+  AlexaFunctionArn:
+    Value: !GetAtt LambdaFunction.Arn
+    Export:
+      Name: FfmpegFunctionArn

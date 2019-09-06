@@ -1,0 +1,45 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: spread
+      Handler: index.lambda_handler
+      Runtime: python3.7
+      MemorySize: 256
+      Timeout: 60
+      Role: !ImportValue LambdaExecutionRoleArn
+      Code:
+        ZipFile: |
+          from multiprocessing.dummy import Pool
+
+          import boto3
+          import json
+          import logging
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          lambda_client = boto3.client('lambda')
+
+          def fire_uri(obj):
+            return lambda_client.invoke(
+              FunctionName='puppeteer',
+              InvocationType='RequestResponse',
+              Payload=json.dumps(obj)
+            )
+
+
+          def lambda_handler(event, context):
+            if isinstance(event, list):
+              with Pool(20) as p:
+                p.map(fire_uri, event)
+            elif event['uri']:
+              fire_uri(event)
+            return event
+Outputs:
+  LambdaFunction:
+    Value: !GetAtt LambdaFunction.Arn
+    Export:
+      Name: SpreadFunctionArn

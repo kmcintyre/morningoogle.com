@@ -1,0 +1,46 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: follow
+      Handler: index.lambda_handler
+      Runtime: python3.7
+      MemorySize: 256
+      Timeout: 60
+      Role: !ImportValue LambdaExecutionRoleArn
+      Code:
+        ZipFile: |
+          from botocore.vendored import requests
+          from multiprocessing.dummy import Pool
+
+          import logging
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          def check_uri(uri):
+            try:
+              r = requests.head(uri, timeout=5)
+              if str(r.status_code)[:1] == '3':
+                return r.headers['Location']
+            except requests.exceptions.RequestException as e:
+              logger.info('exception: {}'.format(e))
+            return uri
+
+          def add_uri(obj):
+            obj['uri'] = check_uri('http://' + obj['domain'])
+
+          def lambda_handler(event, context):
+            if isinstance(event, list):
+              with Pool(25) as p:
+                p.map(add_uri, event)
+            elif event['domain']:
+              add_uri(event)
+            return event
+Outputs:
+  LambdaFunction:
+    Value: !GetAtt LambdaFunction.Arn
+    Export:
+      Name: FollowFunctionArn

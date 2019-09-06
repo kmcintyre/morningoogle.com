@@ -1,0 +1,63 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  Layer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - nodejs8.10
+      Content:
+        S3Bucket: morningoogle.com
+        S3Key: layer/puppeteer.zip
+      LayerName: puppeteer
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: puppeteer
+      Handler: index.handler
+      Runtime: nodejs8.10
+      MemorySize: 1024
+      Timeout: 60
+      Role: !ImportValue LambdaExecutionRoleArn
+      Layers:
+        - !Ref Layer
+      Code:
+        ZipFile: |
+          const chromium = require('chrome-aws-lambda');
+          const fs = require("fs");
+          const AWS = require('aws-sdk');
+
+          let t = '/tmp/trace.json';
+
+          exports.handler = async (event, context) => {
+            let browser = null;
+            try {
+              browser = await chromium.puppeteer.launch({
+                args: chromium.args,
+                defaultViewport: chromium.defaultViewport,
+                executablePath: await chromium.executablePath,
+                headless: chromium.headless,
+              });
+              let page = await browser.newPage();
+              await page.tracing.start({path: t, screenshots: true});
+              await page.goto(event.uri);
+              await page.tracing.stop();
+              let tf = JSON.parse(fs.readFileSync(t))
+
+              event['title'] = await page.title();
+              event['url'] = page.url();
+              event['viewport'] = page.viewport();
+              //event['trace'] = tf);
+              let data = await new AWS.Lambda().invoke(
+                {
+                  FunctionName: 'ffmpeg',
+                  InvocationType: 'RequestResponse',
+                  Payload: JSON.stringify(tf['traceEvents'].filter(event => event.name === "Screenshot").sort((a, b) => a.ts - b.ts))
+                }).promise()
+              event['filmstrip'] = data.Payload;
+              return event;
+            } catch (error) {
+              event['error'] = { message: error.message, name: error.name };
+              return event;
+            }
+          };

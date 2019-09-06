@@ -1,0 +1,72 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Create a CI/CD pipeline with CodePipeline and Github
+Parameters:
+  ProjectName:
+    Default: morningoogle
+    Type: String
+  GITSECRET:
+    Type: String
+    NoEcho: true
+  GITOAUTH:
+    Type: String
+    NoEcho: true
+Resources:
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn: !ImportValue PipelineRoleArn
+      Name: !Sub ${ProjectName}_pipeline
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: 1
+              Configuration:
+                Owner: kmcintyre
+                Repo: morningoogle.com
+                Branch: master
+                OAuthToken: !Ref GITOAUTH
+                PollForSourceChanges: false
+              OutputArtifacts:
+                - Name: SourceZip
+              RunOrder: 1
+        - Name: Build
+          Actions:
+          - Name: BuildAction
+            InputArtifacts:
+              - Name: SourceZip
+            ActionTypeId:
+              Category: Build
+              Owner: AWS
+              Version: 1
+              Provider: CodeBuild
+            Configuration:
+              ProjectName: !Ref ProjectName
+            RunOrder: 1
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactStoreBucket
+  ArtifactStoreBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Suspended
+  Webhook:
+    Type: AWS::CodePipeline::Webhook
+    Properties:
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: !Ref GITSECRET
+      Filters:
+        -
+          JsonPath: "$.ref"
+          MatchEquals: refs/heads/master
+      TargetPipeline: !Ref CodePipeline
+      TargetAction: SourceAction
+      TargetPipelineVersion: !GetAtt CodePipeline.Version
+      RegisterWithThirdParty: true

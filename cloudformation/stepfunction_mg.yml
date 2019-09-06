@@ -1,0 +1,36 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  StateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      DefinitionString:
+        !Sub
+          - |-
+            {
+              "Comment": "MG StateMachine",
+              "StartAt": "alexa",
+              "States": {
+                "alexa": {
+                  "Type": "Task",
+                  "Resource": "${alexaFunctionArn}",
+                  "Next": "follow"
+                },
+                "follow": {
+                  "Type": "Task",
+                  "Resource": "${followFunctionArn}",
+                  "Next": "spread"
+                },
+                "spread": {
+                  "Type": "Task",
+                  "Resource": "${spreadFunctionArn}",
+                  "End": true
+                }
+              }
+            }
+          -
+            alexaFunctionArn: !ImportValue AlexaFunctionArn
+            followFunctionArn: !ImportValue FollowFunctionArn
+            spreadFunctionArn: !ImportValue SpreadFunctionArn
+      RoleArn: !ImportValue StateMachineExecutionRoleArn
+      StateMachineName: mg
